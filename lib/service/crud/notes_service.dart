@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart' show join;
 import 'package:path_provider/path_provider.dart';
@@ -6,6 +8,18 @@ import 'package:mynotes/service/crud/crud_exceptions.dart';
 
 class NotesService {
   Database? _db;
+
+  List<DatabaseNotes> _notes = []; 
+
+  final _notesStreamController =
+      StreamController<List<DatabaseNotes>>.broadcast();
+      
+
+  Future<void> _cacheNotes() async {
+    final allNotes = await getAllNotes();
+    _notes = allNotes.toList();
+    _notesStreamController.add(_notes);
+  } 
 
   Future<DatabaseNotes> updateNote({
     required DatabaseNotes note,
@@ -26,8 +40,13 @@ class NotesService {
     );
     if (updatesCount == 0) {
       throw CouldNotUpdateNoteException();
+    }else{
+      final updatedNote = await getNote(id: note.id);
+      _notes.removeWhere((note) => note.id == updatedNote.id);
+      _notes.add(updatedNote);
+      _notesStreamController.add(_notes);
+      return updatedNote; 
     }
-    return await getNote(id: note.id);
   }
 
   Future<List<DatabaseNotes>> getAllNotes() async {
@@ -47,13 +66,20 @@ class NotesService {
     if (notes.isEmpty) {
       throw CouldNotFindNoteException();
     } else {
-      return DatabaseNotes.fromRow(notes.first);
+      final note = DatabaseNotes.fromRow(notes.first);
+      _notes.removeWhere((note) => note.id == id);
+      _notes.add(note);
+      _notesStreamController.add(_notes);
+      return note;
     }
   }
 
   Future<int> deleteAllNotes() async {
     final db = _getDatabaseOrThrow();
-    return await db.delete(notesTable);
+    final numberOfDeletions = await db.delete(notesTable);
+    _notes = [];
+    _notesStreamController.add(_notes);
+    return numberOfDeletions;
   }
 
   Future<DatabaseNotes> createNote({required DatabaseUser owner}) async {
@@ -70,12 +96,17 @@ class NotesService {
       textColumn: text,
       isSyncedWithServerColumn: 1,
     });
-    return DatabaseNotes(
+    final note = DatabaseNotes(
       id: noteId,
       userId: owner.id,
       text: text,
       isSyncedWithServer: true,
     );
+
+    _notes.add(note);
+    _notesStreamController.add(_notes);
+
+    return note;
   }
 
   Future<void> deleteNote({required int id}) async {
@@ -87,6 +118,9 @@ class NotesService {
     );
     if (deletedCount == 0) {
       throw CouldNotDeleteNoteException();
+    }else{ 
+      _notes.removeWhere((note) => note.id == id);
+      _notesStreamController.add(_notes);
     }
   }
 
