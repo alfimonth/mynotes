@@ -22,12 +22,6 @@ class _NotesViewState extends State<NotesView> {
   }
 
   @override
-  void dispose() {
-    _notesService.close();
-    super.dispose();
-  }
-
-  @override 
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -73,9 +67,7 @@ class _NotesViewState extends State<NotesView> {
                 stream: _notesService.allNotes,
                 builder: (context, snapshot) {
                   switch (snapshot.connectionState) {
-                    case ConnectionState.waiting:
                     case ConnectionState.active:
-                      return const Text('Waiting for all notes...');
                       if (snapshot.hasData) {
                         final allNotes = snapshot.data as List<DatabaseNotes>;
                         return ListView.builder(
@@ -86,8 +78,14 @@ class _NotesViewState extends State<NotesView> {
                               title: Text(
                                 note.text,
                                 maxLines: 1,
+                                softWrap: true,
                                 overflow: TextOverflow.ellipsis,
                               ),
+                              onTap: () {
+                                Navigator.of(
+                                  context,
+                                ).pushNamed(newNoteRoute, arguments: note);
+                              },
                             );
                           },
                         );
