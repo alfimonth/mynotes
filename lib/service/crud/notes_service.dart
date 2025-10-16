@@ -223,7 +223,7 @@ class NotesService {
     try {
       await open();
     } on DatabaseAlreadyOpenException {
-      rethrow;
+      return;
     } catch (e) {
       rethrow;
     }
@@ -231,7 +231,7 @@ class NotesService {
 
   Future<void> open() async {
     if (_db != null) {
-      throw Exception('Database already opened');
+      throw DatabaseAlreadyOpenException();
     }
     try {
       final docsPath = await getApplicationDocumentsDirectory();
@@ -239,9 +239,9 @@ class NotesService {
       final db = await openDatabase(dbPath);
       _db = db;
       // create the user table
-      db.execute(createUserTable);
+      await db.execute(createUserTable);
       // create the notes table
-      db.execute(createNotesTable);
+      await db.execute(createNotesTable);
       await _cacheNotes();
     } on MissingPlatformDirectoryException {
       throw UnableToGetDocumentsDirectoryException();
