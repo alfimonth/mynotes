@@ -2,9 +2,30 @@ import 'package:flutter/material.dart';
 import 'package:mynotes/enums/menu_action.dart';
 import 'package:mynotes/constants/routes.dart';
 import 'package:mynotes/service/auth/auth_service.dart';
+import 'package:mynotes/service/crud/notes_service.dart';
 
-class NotesView extends StatelessWidget {
+class NotesView extends StatefulWidget {
   const NotesView({super.key});
+
+  @override
+  State<NotesView> createState() => _NotesViewState();
+}
+
+class _NotesViewState extends State<NotesView> {
+  late final NotesService _notesService;
+  String get userEmail => AuthService.firebase().currentUser!.email!;
+
+  @override
+  void initState() {
+    _notesService = NotesService();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _notesService.close();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +39,7 @@ class NotesView extends StatelessWidget {
                 case MenuAction.logout:
                   final shouldLogout = await showLogoutDialog(context);
                   if (shouldLogout) {
-                    await AuthService.firebase().logOut() ;
+                    await AuthService.firebase().logOut();
                     if (!context.mounted) return;
                     Navigator.of(
                       context,
@@ -37,7 +58,46 @@ class NotesView extends StatelessWidget {
           ),
         ],
       ),
-      body: Text('Hello World'),
+      body: FutureBuilder(
+        future: _notesService.getOrCreateUser(email: userEmail),
+        builder: (context, snapshot) {
+          switch (snapshot.connectionState) {
+            case ConnectionState.done:
+              return StreamBuilder(
+                stream: _notesService.allNotes,
+                builder: (context, snapshot) {
+                  switch (snapshot.connectionState) {
+                    case ConnectionState.waiting:
+                      return const Text('Waiting for all notes...');
+                    case ConnectionState.active:  
+                      if (snapshot.hasData) {
+                        final allNotes = snapshot.data as List<DatabaseNotes>;
+                        return ListView.builder(
+                          itemCount: allNotes.length,
+                          itemBuilder: (context, index) {
+                            final note = allNotes[index];
+                            return ListTile(
+                              title: Text(
+                                note.text,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            );
+                          },
+                        );
+                      } else {
+                        return const CircularProgressIndicator();
+                      }
+                    default:
+                      return const CircularProgressIndicator();
+                  }
+                },
+              );
+            default:
+              return const CircularProgressIndicator();
+          }
+        },
+      ),
     );
   }
 }
