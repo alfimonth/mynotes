@@ -84,7 +84,10 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('New Note')),
+      appBar: AppBar(
+        title: const Text('New Note'),
+        actions: [IconButton(onPressed: () {}, icon: const Icon(Icons.share))],
+      ),
       body: FutureBuilder(
         future: createOrGetExitingNote(context),
         builder: (context, snapshot) {
