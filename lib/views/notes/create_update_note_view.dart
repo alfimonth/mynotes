@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:mynotes/service/auth/auth_service.dart';
 import 'package:mynotes/service/crud/notes_service.dart';
 import 'package:mynotes/utilities/generic/get_arguments.dart';
-import 'package:sqflite/sqflite.dart';
 
 class CreateUpdateNoteView extends StatefulWidget {
   const CreateUpdateNoteView({super.key});
