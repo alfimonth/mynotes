@@ -10,4 +10,4 @@ class CouldNotUpdateNoteException extends CloudStorageException {}
 
 class CouldNotDeleteNoteException extends CloudStorageException {}
 
-class CouldNotFindNoteException extends CloudStorageException {} 
+class CouldNotFindNoteException extends CloudStorageException {}

@@ -5,6 +5,7 @@ import 'package:mynotes/utilities/generic/get_arguments.dart';
 import 'package:mynotes/service/cloud/cloud_note.dart';
 // import 'package:mynotes/service/cloud/cloud_storage_exceptions.dart';
 import 'package:mynotes/service/cloud/firebase_cloud_storage.dart';
+import 'package:share_plus/share_plus.dart';
 
 class CreateUpdateNoteView extends StatefulWidget {
   const CreateUpdateNoteView({super.key});
@@ -93,6 +94,10 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
               final text = _textController.text;
               if (_note == null || text.isEmpty) {
                 await showCannotShareEmptyNoteDialog(context);
+              } else {
+                SharePlus.instance.share(
+                  ShareParams(text: 'check out my website https://example.com'),
+                );
               }
             },
             icon: const Icon(Icons.share),
