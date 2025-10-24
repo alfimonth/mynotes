@@ -96,7 +96,7 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
                 await showCannotShareEmptyNoteDialog(context);
               } else {
                 SharePlus.instance.share(
-                  ShareParams(text: 'check out my website https://example.com'),
+                  ShareParams(text: text),
                 );
               }
             },
